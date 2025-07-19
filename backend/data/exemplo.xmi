@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmlns:uml="http://www.omg.org/spec/UML/20131001">
+  <uml:Package name="SistemaExemplo">
+    <uml:UseCase name="Login"/>
+    <uml:UseCase name="Cadastro"/>
+    <uml:Class name="Usuario"/>
+    <uml:Class name="Autenticador"/>
+    <uml:Class name="ServicoCadastro"/>
+  </uml:Package>
+</uml:Model>

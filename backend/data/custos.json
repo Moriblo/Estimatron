@@ -1,0 +1,7 @@
+{
+  "_comentarios": "Valores em R$/hora. Usados para cálculo de custo total no skill_mapper.py.",
+  "Analista de Requisitos": 120,
+  "Arquiteto de Software": 140,
+  "Desenvolvedor": 100,
+  "Testador": 80
+}

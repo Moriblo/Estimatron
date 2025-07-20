@@ -10,6 +10,7 @@ Autor: MOACYR + Copilot
 """
 
 from typing import Dict
+from fastapi import FastAPI
 
 def mapear_skills(metrica: Dict[str, int], custos_json: Dict[str, float]) -> Dict[str, Dict[str, float]]:
     """

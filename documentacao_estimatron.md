@@ -2,8 +2,9 @@
 
 ## 📄 Log de Atualizações Técnicas
 
-- 📆 Execução: **2025-07-19 21:07**
+- 📆 Execução: **2025-07-19 22:57**
 - ✅ `requirements.txt` atualizado via pipreqs
+- 🛠️ Pacotes essenciais adicionados manualmente: fastapi, pydantic
 - ✅ Nenhuma alteração em `requirements-dev.txt`
 
 ---
@@ -13,19 +14,36 @@
 
 ### `POST /upload/` → `upload_model()`
 - Modelo de saída: `Metricas`
-- Descrição: Extrai métricas técnicas do modelo UML e valida XML com esquema XSD.
+- Descrição: Recebe um arquivo XMI UML via upload, extrai as métricas técnicas do modelo (casos de uso, classes, linhas estimadas)
+    e valida a estrutura XML gerada com base em um schema XSD.
+
+    O arquivo deve representar um modelo UML exportado por ferramentas compatíveis (formato XMI 2.x ou 1.x).
+
+    Returns:
+        Metricas: Objeto contendo as métricas extraídas do modelo UML.
 
 ### `GET /metrics/` → `get_metrics()`
 - Modelo de saída: `Metricas`
-- Descrição: Retorna as métricas extraídas do último arquivo processado.
+- Descrição: Retorna as métricas extraídas do último arquivo processado via /upload/.
+
+    Returns:
+        Metricas: Objeto com número de casos de uso, classes e linhas estimadas.
 
 ### `POST /generate/` → `generate_proposal()`
 - Modelo de saída: `Proposta`
-- Descrição: Gera proposta comercial com escopo, esforço, prazo e custo técnico.
+- Descrição: Gera proposta comercial com escopo, esforço, prazo e custo técnico
+    com base nas métricas extraídas e perfis profissionais definidos.
+
+    Returns:
+        Proposta: Estrutura contendo resumo técnico e distribuição por perfil.
 
 ### `GET /export/` → `export_proposal()`
 - Modelo de saída: `None`
-- Descrição: Exporta a proposta gerada em formato .md, .txt ou .pdf.
+- Descrição: Exporta a proposta comercial gerada para arquivo em formato .md.
+
+    Observação:
+        Esta rota retorna um arquivo binário gerado pelo sistema, e por isso não define um modelo de resposta.
+- Observação: Esta rota retorna um arquivo binário gerado pelo sistema, e por isso não define um modelo de resposta.
 
 ---
 
@@ -55,7 +73,7 @@
 > ###############################################################################
 🚀 Estimatron 3.0 — Módulo principal da API
 
-Orquestra os agentes para processar arquivos XMI e JSON,
+Orquestra os agentes para processar arquivos XMI UML,
 gerar XML, validar via XSD, aplicar COCOMO II e compor proposta comercial.
 
 Autor: MOACYR + Copilot
@@ -233,7 +251,7 @@ Estrutura para o retorno da proposta comercial.
 > ###############################################################################
 🚀 Estimatron 3.0 — Módulo principal da API
 
-Orquestra os agentes para processar arquivos XMI e JSON,
+Orquestra os agentes para processar arquivos XMI UML,
 gerar XML, validar via XSD, aplicar COCOMO II e compor proposta comercial.
 
 Autor: MOACYR + Copilot

@@ -9,6 +9,7 @@ Autor: MOACYR + Copilot
 """
 
 import xml.etree.ElementTree as ET
+from fastapi import FastAPI
 from typing import Dict
 
 def gerar_xml(metricas: Dict[str, int]) -> str:

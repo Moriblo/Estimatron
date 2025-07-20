@@ -10,6 +10,7 @@ Autor: MOACYR + Copilot
 """
 
 from typing import Dict
+from fastapi import FastAPI
 
 def extrair_metrica(xmi_bytes: bytes) -> Dict[str, int]:
     """

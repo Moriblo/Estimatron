@@ -9,6 +9,7 @@ Autor: MOACYR + Copilot
 """
 
 from lxml import etree
+from fastapi import FastAPI
 
 def validar(xml_string: str, xsd_path: str) -> bool:
     """

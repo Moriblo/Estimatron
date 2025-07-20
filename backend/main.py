@@ -2,122 +2,111 @@
 ###############################################################################
 🚀 Estimatron 3.0 — Módulo principal da API
 
-Orquestra os agentes para processar arquivos XMI e JSON,
+Orquestra os agentes para processar arquivos XMI UML,
 gerar XML, validar via XSD, aplicar COCOMO II e compor proposta comercial.
 
 Autor: MOACYR + Copilot
 ###############################################################################
 """
 
-from fastapi import FastAPI, UploadFile, File, Response
-from fastapi.responses import JSONResponse
-from typing import Dict
-import json
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import FileResponse
+from typing import Optional
+from xmi_parser import extrair_metrica
+from xml_converter import gerar_xml
+from xsd_validator import validar
+from skill_mapper import mapear_skills
+from cocomo_estimator import estimar_cocomo
+from proposal_writer import gerar
+from schemas import Metricas, Proposta
+import os
 
-# 📦 Agentes técnicos
-from agents import (
-    xmi_parser,
-    xml_converter,
-    xsd_validator,
-    skill_mapper,
-    cocomo_estimator,
-    proposal_writer
-)
+app = FastAPI()
 
-# 📘 Modelos tipados
-from models.schemas import Metricas, Proposta
-
-# 📂 Caminho para o esquema XSD
-XSD_PATH = "utils/xsd/schema.xsd"
-
-app = FastAPI(title="Estimatron 3.0")
-
-# 🗂️ Cache técnico para endpoints auxiliares
-cache_metricas: Dict = {}
-cache_proposta: str = ""
+# 🔗 Estado compartilhado para simular armazenamento mínimo
+estado_metricas: Optional[Metricas] = None
+estado_proposta: Optional[str] = None
 
 @app.post("/upload/", response_model=Metricas)
-async def upload_model(xmifile: UploadFile = File(...), custos_json: UploadFile = File(...)) -> JSONResponse:
+async def upload_model(file: UploadFile = File(...)) -> Metricas:
     """
-    Extrai métricas técnicas do modelo UML e valida XML com esquema XSD.
+    Recebe um arquivo XMI UML via upload, extrai as métricas técnicas do modelo (casos de uso, classes, linhas estimadas)
+    e valida a estrutura XML gerada com base em um schema XSD.
+
+    O arquivo deve representar um modelo UML exportado por ferramentas compatíveis (formato XMI 2.x ou 1.x).
+
+    Returns:
+        Metricas: Objeto contendo as métricas extraídas do modelo UML.
     """
-    try:
-        xmi_bytes = await xmifile.read()
-        custos_bytes = await custos_json.read()
-        custos_data = json.loads(custos_bytes)
+    # O arquivo XMI representa um modelo UML exportado por ferramentas como StarUML ou Enterprise Architect
+    file_bytes = await file.read()
+    metricas_dict = extrair_metrica(file_bytes)
+    xml_gerado = gerar_xml(metricas_dict)
 
-        metricas = xmi_parser.extrair_metrica(xmi_bytes)
-        xml_string = xml_converter.gerar_xml(metricas)
-        xsd_validator.validar(xml_string, XSD_PATH)
+    caminho_xsd = "schemas/estimatron.xsd"
+    valido = validar(xml_gerado, caminho_xsd)
 
-        cache_metricas.clear()
-        cache_metricas.update(metricas)
+    if not valido:
+        raise ValueError("XML gerado não válido segundo schema XSD.")
 
-        return JSONResponse(content=metricas)
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"erro": str(e)})
+    global estado_metricas
+    estado_metricas = Metricas(**metricas_dict)
+    return estado_metricas
 
 @app.get("/metrics/", response_model=Metricas)
-async def get_metrics() -> JSONResponse:
+async def get_metrics() -> Metricas:
     """
-    Retorna as métricas extraídas do último arquivo processado.
+    Retorna as métricas extraídas do último arquivo processado via /upload/.
+
+    Returns:
+        Metricas: Objeto com número de casos de uso, classes e linhas estimadas.
     """
-    if cache_metricas:
-        return JSONResponse(content=cache_metricas)
-    return JSONResponse(status_code=404, content={"erro": "Nenhuma métrica disponível"})
+    if not estado_metricas:
+        raise ValueError("Nenhuma métrica foi carregada ainda.")
+    return estado_metricas
 
 @app.post("/generate/", response_model=Proposta)
-async def generate_proposal(xmifile: UploadFile = File(...), custos_json: UploadFile = File(...)) -> JSONResponse:
+async def generate_proposal() -> Proposta:
     """
-    Gera proposta comercial com escopo, esforço, prazo e custo técnico.
+    Gera proposta comercial com escopo, esforço, prazo e custo técnico
+    com base nas métricas extraídas e perfis profissionais definidos.
+
+    Returns:
+        Proposta: Estrutura contendo resumo técnico e distribuição por perfil.
     """
-    try:
-        xmi_bytes = await xmifile.read()
-        custos_bytes = await custos_json.read()
-        custos_data = json.loads(custos_bytes)
+    if not estado_metricas:
+        raise ValueError("Nenhuma métrica foi carregada ainda.")
 
-        metricas = xmi_parser.extrair_metrica(xmi_bytes)
-        xml_string = xml_converter.gerar_xml(metricas)
-        xsd_validator.validar(xml_string, XSD_PATH)
+    # Parâmetros fictícios para cálculo
+    custos = {"Arquiteto": 180.0, "Dev Senior": 120.0, "Dev Pleno": 95.0}
+    distribuicao = mapear_skills(estado_metricas.dict(), custos)
+    resumo = estimar_cocomo(estado_metricas.linhas_estimadas, multiplicador=1.15, custo_mensal=18000.0)
 
-        resumo_cocomo = cocomo_estimator.estimar_cocomo(
-            tamanho_kloc=metricas["linhas_estimadas"] / 1000,
-            multiplicador=1.15,
-            custo_mensal=18000
-        )
+    texto_final = gerar(estado_metricas.dict(), distribuicao, resumo)
 
-        distribuicao = skill_mapper.mapear_skills(metricas, custos_data)
+    global estado_proposta
+    estado_proposta = texto_final
 
-        proposta_texto = proposal_writer.gerar(metricas, distribuicao, resumo_cocomo)
-
-        cache_metricas.clear()
-        cache_metricas.update(metricas)
-        global cache_proposta
-        cache_proposta = proposta_texto
-
-        return JSONResponse(content={"texto": proposta_texto})
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"erro": str(e)})
+    return Proposta(
+        metricas=estado_metricas,
+        distribuicao=distribuicao,
+        resumo=resumo,
+        conteudo=texto_final
+    )
 
 @app.get("/export/")
-async def export_proposal(format: str = "md") -> Response:
+async def export_proposal() -> FileResponse:
     """
-    Exporta a proposta gerada em formato .md, .txt ou .pdf.
+    Exporta a proposta comercial gerada para arquivo em formato .md.
+
+    Observação:
+        Esta rota retorna um arquivo binário gerado pelo sistema, e por isso não define um modelo de resposta.
     """
-    if format not in ["md", "txt", "pdf"]:
-        return JSONResponse(status_code=400, content={"erro": "Formato inválido"})
-    if not cache_proposta:
-        return JSONResponse(status_code=404, content={"erro": "Nenhuma proposta disponível"})
+    if not estado_proposta:
+        raise ValueError("Nenhuma proposta foi gerada ainda.")
 
-    filename = f"proposta.{format}"
-    mime = {
-        "md": "text/markdown",
-        "txt": "text/plain",
-        "pdf": "application/pdf"
-    }.get(format, "application/octet-stream")
+    nome_arquivo = "proposta_estimatron.md"
+    with open(nome_arquivo, "w", encoding="utf-8") as f:
+        f.write(estado_proposta)
 
-    return Response(content=cache_proposta, media_type=mime, headers={
-        "Content-Disposition": f"attachment; filename={filename}"
-    })
-
-
+    return FileResponse(nome_arquivo, media_type="text/markdown", filename=nome_arquivo)

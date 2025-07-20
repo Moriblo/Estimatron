@@ -11,7 +11,7 @@ Autor: MOACYR + Copilot
 
 from pydantic import BaseModel
 from typing import Dict
-
+from fastapi import FastAPI
 class Metricas(BaseModel):
     """
     Representa as métricas técnicas extraídas de um modelo UML.

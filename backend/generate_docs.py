@@ -137,12 +137,20 @@ def extrair_contrato_api() -> str:
 
 def gerar_requirements_txt() -> bool:
     try:
-        subprocess.run(["pipreqs", ".", "--encoding=utf-8", "--force"], check=True)
+        subprocess.run([
+            "pipreqs",
+            os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
+            "--encoding=utf-8",
+            "--force"
+        ], check=True)
+
         garantir_pacotes_essenciais()
         return True
     except Exception as e:
         print(f"⚠️ Erro ao gerar requirements.txt: {e}")
         return False
+
+
 
 def garantir_pacotes_essenciais() -> None:
     try:

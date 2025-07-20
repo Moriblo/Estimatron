@@ -1,29 +1,56 @@
 # 📚 Documentação Técnica — Estimatron 3.0
 
-## 🧩 generate_docs.py
+## 📄 Log de Atualizações Técnicas
 
-> ###############################################################################
-📄 Estimatron 3.0 — Script: generate_docs.py
+- 📆 Execução: **2025-07-19 21:07**
+- ✅ `requirements.txt` atualizado via pipreqs
+- ✅ Nenhuma alteração em `requirements-dev.txt`
 
-Percorre módulos Python do projeto e gera uma documentação estática (Markdown)
-com os cabeçalhos, nomes de funções e docstrings dos arquivos encontrados.
+---
 
-Autor: MOACYR + Copilot
-###############################################################################
 
-### 📘 Função: `extrair_docstrings()`
-Extrai cabeçalho e docstrings de funções/classes de um arquivo .py
+# 📡 Contrato da API (FastAPI)
 
-Parâmetros:
-    caminho_arquivo (str): Caminho completo para o módulo Python
+### `POST /upload/` → `upload_model()`
+- Modelo de saída: `Metricas`
+- Descrição: Extrai métricas técnicas do modelo UML e valida XML com esquema XSD.
 
-Retorna:
-    str: Bloco Markdown com documentação encontrada
+### `GET /metrics/` → `get_metrics()`
+- Modelo de saída: `Metricas`
+- Descrição: Retorna as métricas extraídas do último arquivo processado.
 
-### 📘 Função: `gerar_documentacao()`
-Percorre as pastas-alvo e gera o arquivo Markdown consolidado.
+### `POST /generate/` → `generate_proposal()`
+- Modelo de saída: `Proposta`
+- Descrição: Gera proposta comercial com escopo, esforço, prazo e custo técnico.
+
+### `GET /export/` → `export_proposal()`
+- Modelo de saída: `None`
+- Descrição: Exporta a proposta gerada em formato .md, .txt ou .pdf.
+
+---
+
+## 📘 Índice de Módulos
+- [main.py](#main)
+- [cocomo_estimator.py](#cocomo_estimator)
+- [proposal_writer.py](#proposal_writer)
+- [skill_mapper.py](#skill_mapper)
+- [xmi_parser.py](#xmi_parser)
+- [xml_converter.py](#xml_converter)
+- [xsd_validator.py](#xsd_validator)
+- [schemas.py](#schemas)
+- [main.py](#main)
+- [cocomo_estimator.py](#cocomo_estimator)
+- [proposal_writer.py](#proposal_writer)
+- [skill_mapper.py](#skill_mapper)
+- [xmi_parser.py](#xmi_parser)
+- [xml_converter.py](#xml_converter)
+- [xsd_validator.py](#xsd_validator)
+- [schemas.py](#schemas)
+
+---
 
 ## 🧩 main.py
+<a name="main"></a>
 
 > ###############################################################################
 🚀 Estimatron 3.0 — Módulo principal da API
@@ -35,6 +62,7 @@ Autor: MOACYR + Copilot
 ###############################################################################
 
 ## 🧩 cocomo_estimator.py
+<a name="cocomo_estimator"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: cocomo_estimator
@@ -45,7 +73,7 @@ prazo de projeto e custo estimado com base em KLOC e fatores de ajuste.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `estimar_cocomo()`
+### 📘 Função: `estimar_cocomo(tamanho_kloc: Union[int, float], multiplicador: float, custo_mensal: float) -> Dict[str, float]`
 Calcula esforço, prazo e custo estimado via modelo COCOMO II.
 
 Parâmetros:
@@ -60,6 +88,7 @@ Retorna:
         - custo_total (se custo_mensal fornecido)
 
 ## 🧩 proposal_writer.py
+<a name="proposal_writer"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: proposal_writer
@@ -70,7 +99,7 @@ distribuição de esforço por perfil técnico e resumo da estimativa COCOMO II.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `gerar()`
+### 📘 Função: `gerar(metricas: Dict[str, int], distribuicao: Dict[str, Dict[str, float]], resumo_cocomo: Dict[str, float]) -> str`
 Gera o conteúdo textual da proposta comercial formatada.
 
 Parâmetros:
@@ -82,6 +111,7 @@ Retorna:
     str: Texto formatado da proposta comercial.
 
 ## 🧩 skill_mapper.py
+<a name="skill_mapper"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: skill_mapper
@@ -92,7 +122,7 @@ Aplica os custos por perfil informados via JSON e calcula distribuição de esfo
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `mapear_skills()`
+### 📘 Função: `mapear_skills(metrica: Dict[str, int], custos_json: Dict[str, float]) -> Dict[str, Dict[str, float]]`
 Distribui esforço estimado entre perfis profissionais com base nas métricas e custos.
 
 Parâmetros:
@@ -105,6 +135,7 @@ Retorna:
         - custo_total (float): Custo calculado com base na taxa/hora
 
 ## 🧩 xmi_parser.py
+<a name="xmi_parser"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: xmi_parser
@@ -115,7 +146,7 @@ do pipeline de estimativa.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `extrair_metrica()`
+### 📘 Função: `extrair_metrica(xmi_bytes: bytes) -> Dict[str, int]`
 Extrai métricas técnicas de um arquivo XMI UML.
 
 Parâmetros:
@@ -128,6 +159,7 @@ Retorna:
         - linhas_estimadas (int): estimativa de LOC com base na complexidade
 
 ## 🧩 xml_converter.py
+<a name="xml_converter"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: xml_converter
@@ -137,7 +169,7 @@ Esse XML será validado posteriormente contra um schema XSD no pipeline técnico
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `gerar_xml()`
+### 📘 Função: `gerar_xml(metricas: Dict[str, int]) -> str`
 Gera uma string XML estruturada a partir das métricas do modelo UML.
 
 Parâmetros:
@@ -150,6 +182,7 @@ Retorna:
     str: XML em formato string pronto para validação via XSD.
 
 ## 🧩 xsd_validator.py
+<a name="xsd_validator"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: xsd_validator
@@ -159,7 +192,7 @@ conformidade estrutural antes de aplicar os modelos de estimativa.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `validar()`
+### 📘 Função: `validar(xml_string: str, xsd_path: str) -> bool`
 Valida um documento XML contra um esquema XSD.
 
 Parâmetros:
@@ -174,6 +207,7 @@ Levanta:
     etree.DocumentInvalid: Se o XML não atender à estrutura definida no XSD.
 
 ## 🧩 schemas.py
+<a name="schemas"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: schemas
@@ -184,39 +218,17 @@ Utilizado opcionalmente nos endpoints para tipagem forte e compatibilidade OpenA
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 🏷️ Classe: `Metricas()`
+### 🏷️ Classe: `Metricas`
 Representa as métricas técnicas extraídas de um modelo UML.
 
-### 🏷️ Classe: `PerfilDistribuido()`
+### 🏷️ Classe: `PerfilDistribuido`
 Representa o esforço técnico e custo por perfil profissional.
 
-### 🏷️ Classe: `Proposta()`
+### 🏷️ Classe: `Proposta`
 Estrutura para o retorno da proposta comercial.
 
-## 🧩 generate_docs.py
-
-> ###############################################################################
-📄 Estimatron 3.0 — Script: generate_docs.py
-
-Percorre módulos Python do projeto e gera uma documentação estática (Markdown)
-com os cabeçalhos, nomes de funções e docstrings dos arquivos encontrados.
-
-Autor: MOACYR + Copilot
-###############################################################################
-
-### 📘 Função: `extrair_docstrings()`
-Extrai cabeçalho e docstrings de funções/classes de um arquivo .py
-
-Parâmetros:
-    caminho_arquivo (str): Caminho completo para o módulo Python
-
-Retorna:
-    str: Bloco Markdown com documentação encontrada
-
-### 📘 Função: `gerar_documentacao()`
-Percorre as pastas-alvo e gera o arquivo Markdown consolidado.
-
 ## 🧩 main.py
+<a name="main"></a>
 
 > ###############################################################################
 🚀 Estimatron 3.0 — Módulo principal da API
@@ -228,6 +240,7 @@ Autor: MOACYR + Copilot
 ###############################################################################
 
 ## 🧩 cocomo_estimator.py
+<a name="cocomo_estimator"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: cocomo_estimator
@@ -238,7 +251,7 @@ prazo de projeto e custo estimado com base em KLOC e fatores de ajuste.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `estimar_cocomo()`
+### 📘 Função: `estimar_cocomo(tamanho_kloc: Union[int, float], multiplicador: float, custo_mensal: float) -> Dict[str, float]`
 Calcula esforço, prazo e custo estimado via modelo COCOMO II.
 
 Parâmetros:
@@ -253,6 +266,7 @@ Retorna:
         - custo_total (se custo_mensal fornecido)
 
 ## 🧩 proposal_writer.py
+<a name="proposal_writer"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: proposal_writer
@@ -263,7 +277,7 @@ distribuição de esforço por perfil técnico e resumo da estimativa COCOMO II.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `gerar()`
+### 📘 Função: `gerar(metricas: Dict[str, int], distribuicao: Dict[str, Dict[str, float]], resumo_cocomo: Dict[str, float]) -> str`
 Gera o conteúdo textual da proposta comercial formatada.
 
 Parâmetros:
@@ -275,6 +289,7 @@ Retorna:
     str: Texto formatado da proposta comercial.
 
 ## 🧩 skill_mapper.py
+<a name="skill_mapper"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: skill_mapper
@@ -285,7 +300,7 @@ Aplica os custos por perfil informados via JSON e calcula distribuição de esfo
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `mapear_skills()`
+### 📘 Função: `mapear_skills(metrica: Dict[str, int], custos_json: Dict[str, float]) -> Dict[str, Dict[str, float]]`
 Distribui esforço estimado entre perfis profissionais com base nas métricas e custos.
 
 Parâmetros:
@@ -298,6 +313,7 @@ Retorna:
         - custo_total (float): Custo calculado com base na taxa/hora
 
 ## 🧩 xmi_parser.py
+<a name="xmi_parser"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: xmi_parser
@@ -308,7 +324,7 @@ do pipeline de estimativa.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `extrair_metrica()`
+### 📘 Função: `extrair_metrica(xmi_bytes: bytes) -> Dict[str, int]`
 Extrai métricas técnicas de um arquivo XMI UML.
 
 Parâmetros:
@@ -321,6 +337,7 @@ Retorna:
         - linhas_estimadas (int): estimativa de LOC com base na complexidade
 
 ## 🧩 xml_converter.py
+<a name="xml_converter"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: xml_converter
@@ -330,7 +347,7 @@ Esse XML será validado posteriormente contra um schema XSD no pipeline técnico
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `gerar_xml()`
+### 📘 Função: `gerar_xml(metricas: Dict[str, int]) -> str`
 Gera uma string XML estruturada a partir das métricas do modelo UML.
 
 Parâmetros:
@@ -343,6 +360,7 @@ Retorna:
     str: XML em formato string pronto para validação via XSD.
 
 ## 🧩 xsd_validator.py
+<a name="xsd_validator"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: xsd_validator
@@ -352,7 +370,7 @@ conformidade estrutural antes de aplicar os modelos de estimativa.
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 📘 Função: `validar()`
+### 📘 Função: `validar(xml_string: str, xsd_path: str) -> bool`
 Valida um documento XML contra um esquema XSD.
 
 Parâmetros:
@@ -367,6 +385,7 @@ Levanta:
     etree.DocumentInvalid: Se o XML não atender à estrutura definida no XSD.
 
 ## 🧩 schemas.py
+<a name="schemas"></a>
 
 > ###############################################################################
 📦 Estimatron 3.0 — Módulo: schemas
@@ -377,11 +396,11 @@ Utilizado opcionalmente nos endpoints para tipagem forte e compatibilidade OpenA
 Autor: MOACYR + Copilot
 ###############################################################################
 
-### 🏷️ Classe: `Metricas()`
+### 🏷️ Classe: `Metricas`
 Representa as métricas técnicas extraídas de um modelo UML.
 
-### 🏷️ Classe: `PerfilDistribuido()`
+### 🏷️ Classe: `PerfilDistribuido`
 Representa o esforço técnico e custo por perfil profissional.
 
-### 🏷️ Classe: `Proposta()`
+### 🏷️ Classe: `Proposta`
 Estrutura para o retorno da proposta comercial.
